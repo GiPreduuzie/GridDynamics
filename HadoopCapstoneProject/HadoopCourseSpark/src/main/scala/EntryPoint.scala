@@ -121,20 +121,25 @@ object EntryPoint {
   def main(args: Array[String]) = {
     val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
 
+    println("RDD")
+    println("I    most purchased categories")
+    mostPurchasedCategoriesRDD(spark, "spark_rdd_top_purchased_categories")
+    println("II   most products per category")
+    mostPurchasedProductsPerCategoryRDD(spark, "spark_rdd_top_purchased_products_per_category")
+    println("III  most spending countries")
+    mostSpendingCountriesRDD(spark, "spark_rdd_top_spending_countries")
+
     println("SQL")
     println("I    most purchased categories")
     mostPurchasedCategories(spark, "spark_sql_top_purchased_categories")
-//    println("II   most products per category")
-//    mostPurchasedProductsPerCategory(spark, "spark_sql_top_purchased_products_per_category")
-//    //    println("most spending countries")
-    //    mostSpendingCountriesBruteForce(spark)
-    println("RDD")
-//    println("I    most purchased categories")
-//    mostPurchasedCategoriesRDD(spark,  "spark_rdd_top_purchased_categories")
     println("II   most products per category")
-    mostPurchasedProductsPerCategoryRDD(spark, "spark_rdd_top_purchased_products_per_category")
-//    println("III  most spending countries")
-//    mostSpendingCountriesRDD(spark, "spark_rdd_top_spending_countries")
+    mostPurchasedProductsPerCategory(spark, "spark_sql_top_purchased_products_per_category")
+    println("most spending countries")
+    mostSpendingCountriesBruteForce(spark)
+    // This last request I was not able to optimize in Spark SQL. Still the code is presented.
+    // println("III  most spending countries")
+    // mostSpendingCountries(spark, "spark_sql_top_spending_countries")
+
 
     println("FINISH")
     spark.stop()
@@ -214,7 +219,7 @@ object EntryPoint {
     println(q.take(100).mkString("\n"))
   }
 
-  def mostSpendingCountries(spark: SparkSession) = {
+  def mostSpendingCountries(spark: SparkSession, tableName: String) = {
     // /usr/share/java/mysql-connector-java.jar
     import org.apache.spark.sql.functions.udf
     import spark.implicits._
