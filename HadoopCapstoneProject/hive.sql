@@ -5,7 +5,7 @@ drop table if exists events;
 create external table events
   ( product_name string,
     product_category string,
-    product_price int,
+    product_price double,
     tstmp string,
     client_ip string
   )
@@ -121,7 +121,7 @@ from top_purchased_products_per_category;
 TOP 10 COUNTRIES WITH THE HIGHEST MONEY SPENDING
 */
 
-create temporary function get_ip as 'com.griu.hive.udf.IpExtractor' USING JAR 'hdfs://sandbox-hdp.hortonworks.com:8020/user/root/hive/hive_udf.jar';
+create temporary function get_ip as 'com.gridu.hive.udf.IpExtractor' USING JAR 'hdfs://sandbox-hdp.hortonworks.com:8020/user/root/hive/hive_udf.jar';
 create temporary function get_network_size as 'com.gridu.hive.udf.NetworkSizeExtractor' USING JAR 'hdfs://sandbox-hdp.hortonworks.com:8020/user/root/hive/hive_udf.jar';
 create temporary function mask_ip as 'com.gridu.hive.udf.IpMasker' USING JAR 'hdfs://sandbox-hdp.hortonworks.com:8020/user/root/hive/hive_udf.jar';
 
@@ -137,20 +137,30 @@ insert into country_network
 select network_size, network, country_name
 from
 (select get_network_size(network) as network_size, get_ip(network) as network, country_name
-from geo_ip join city_locations on geo_ip.geoname_id == city_locations.geoname_id) as a;
+from geo_ip join city_locations on geo_ip.geoname_id == city_locations.geoname_id
+where country_name != "") as a;
 
-insert overwrite directory '/user/root/export/top_spending_countries'
-row format delimited fields terminated by ','
-stored as textfile
-select country_name, sum(product_price) as money_spent
+drop table if exists price_with_countries;
+create table price_with_countries (
+    country_name string,
+    money_spent double
+)
+stored as orc;
+
+insert into table price_with_countries
+select country_name, product_price as money_spent
 from country_network join (
 with s as (select distinct network_size from country_network order by network_size)
 select network_size, client_ip, mask_ip(client_ip, network_size) as network, product_price
 from s join events) as e
 on e.network_size = country_network.network_size and country_network.network = e.network
+order by country_name;
+
+insert overwrite directory '/user/root/export/top_spending_countries'
+row format delimited fields terminated by ','
+stored as textfile
+select country_name, sum(money_spent) as money_spent
+from price_with_countries
 group by country_name
 order by money_spent desc
 limit 10;
-
-/*-------------
-*/

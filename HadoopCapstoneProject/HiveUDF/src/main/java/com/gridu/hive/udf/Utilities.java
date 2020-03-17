@@ -11,6 +11,8 @@ public class Utilities {
     }
 
     static public int maskIp(String ip, int networkSize) {
+        if (networkSize == 0)
+            return 0;
         int emptyBits = 32 - networkSize;
         return -1 >>> emptyBits << emptyBits & ipToInt(ip);
     }
@@ -20,6 +22,8 @@ public class Utilities {
         int acc = 0;
         int i = 0;
         while (i < parts.length) {
+            int part = Integer.parseInt(parts[i]);
+            if (part < 0 || part > 255) throw new IllegalArgumentException("ip {" + ip + "} is malformed");
             acc = (acc << 8) + Integer.parseInt(parts[i]);
             i++;
         }
