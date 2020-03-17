@@ -1,0 +1,21 @@
+
+sqoop export \
+--connect "jdbc:mysql://sandbox-hdp.hortonworks.com/big_data" \
+--username root \
+--password hortonworks1 \
+--export-dir /user/root/export/top_purchased_categories \
+--table top_purchased_categories
+
+sqoop export \
+--connect "jdbc:mysql://sandbox-hdp.hortonworks.com/big_data" \
+--username root \
+--password hortonworks1 \
+--export-dir /user/root/export/top_purchased_products_per_category \
+--table top_purchased_products_per_category
+
+sqoop export \
+--connect "jdbc:mysql://sandbox-hdp.hortonworks.com/big_data" \
+--username root \
+--password hortonworks1 \
+--export-dir /user/root/export/top_spending_countries \
+--table top_spending_countries
